@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  web:
+    image: php:8.1-apache
+    container_name: tugasatippitra_web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./:/var/www/html
+      - ./apache.conf:/etc/apache2/sites-available/000-default.conf:ro
+      - ./ssl:/etc/apache2/ssl:ro
+    environment:
+      - APACHE_DOCUMENT_ROOT=/var/www/html
+      - APACHE_LOG_DIR=/var/log/apache2
+    depends_on:
+      - db
+    networks:
+      - tugasatippitra_network
+    command: |
+      bash -c "
+      a2enmod rewrite headers &&
+      a2enmod ssl &&
+      docker-php-ext-install pdo pdo_mysql &&
+      apache2ctl -D FOREGROUND
+      "
+
+  db:
+    image: mysql:8.0
+    container_name: tugasatippitra_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: db_absensi_qr
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppassword
+      TZ: 'Asia/Jakarta'
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database.sql:/docker-entrypoint-initdb.d/database.sql:ro
+    networks:
+      - tugasatippitra_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: tugasatippitra_phpmyadmin
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: root
+    ports:
+      - "8081:80"
+    depends_on:
+      - db
+    networks:
+      - tugasatippitra_network
+
+volumes:
+  db_data:
+    driver: local
+
+networks:
+  tugasatippitra_network:
+    driver: bridge
