@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "hooks": {
+    "afterAgentResponse": [
+      {
+        "command": "\"C:\\Users\\LENOVO\\AppData\\Local\\Programs\\Antigravity IDE\\Antigravity IDE.exe\" .cursor/hooks/after-agent-response.js"
+      }
+    ]
+  }
+}
